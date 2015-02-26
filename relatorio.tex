@@ -307,16 +307,40 @@ RELATÓRIO}
 
 \vspace{1cm}
 
-\textit{
-Nesta parte do relatório o estudante deve apresentar um resumo do
-desenvolvimento do projeto de pesquisa um ano atrás (último relatório)
-}
+No período entre Março de 2013 e Fevereiro de 2014,
+eu desenvolvi a infraestrutura computacional que seria necessária para a
+implementação da inversão de dados gravimétricos em coordenadas esférias.
 
-\vspace{1cm}
+A primeira etapa foi o desenvolvimento de um conjunto
+de classes e funções em linguagem Python para
+automatizar a criação de métodos de inversão.
+Esse código foi incluído na biblioteca Fatiando a Terra (http://fatiando.org/),
+onde é utilizado para implementar os diversos métodos de inversão já incluídos
+na biblioteca.
+Esse novo módulo de inversão automatiza as tarefas de
+(1) construção da função objetivo,
+(2) implementação das diversas formas de regularização,
+(3) minimização da função objetivo por diferentes métodos,
+(4) cálculo do vetor gradiente e matriz Hessiana da função objetivo
+e (5) determinação do parâmetro de regularização através da análise da curva L.
 
-{\centering
-(NO MÁXIMO UMA PÁGINA)
-\par}
+A segunda etapa foi a implementação da modelagem direta em coordenadas
+esféricas utilizando tesseroides (prismas esféricos).
+Fiz uma implementação da modelagem em linguagem Python para comparar com a
+implementação anterior em linguagem C do programa Tesseroids
+(http://www.leouieda.com/tesseroids).
+Obtive resultados preliminares da análise do erro cometido na integração
+numérica do campo gravitacional de um tesseroide.
+Existem poucos modelos em coordenadas esféricas com soluções analíticas que
+possam ser utilizados na quantificação do erro.
+Utilizei o modelo de meia casca esférica, para a qual existe uma solução
+analítica para o ponto de observação localizado no polo.
+Outro modelo utilizado foi o de um prisma retangular reto.
+Este não é um modelo ideal pois a aproximação de um tesseroide por um prisma
+retangular piora quanto maior o tesseroide ou quanto mais longe da região
+equatorial.
+
+
 
 \newpage
 
