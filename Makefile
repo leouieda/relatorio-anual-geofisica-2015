@@ -1,13 +1,15 @@
 TEX := pdflatex
-TARGET := relatorio.pdf
-SOURCE := relatorio.tex
+MS := relatorio
+TARGET := $(MS).pdf
+SOURCE := $(MS).tex
 
 all: $(TARGET)
 
-$(TARGET): $(SOURCE) img/*
+$(TARGET): $(SOURCE) img/* figs/* parte-paper.tex
 	$(TEX) $<
+	bibtex $(MS)
 	$(TEX) $<
 	$(TEX) $<
 
 clean:
-	rm -rf *.aux *.log *.bbl *.out $(TARGET)
+	rm -rf *.aux *.log *.bbl *.blg *.out $(TARGET) figs/*-eps-converted-to.pdf

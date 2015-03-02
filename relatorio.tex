@@ -5,6 +5,8 @@
 \usepackage[noenc]{tipa}
 \usepackage{tipx}
 \usepackage[geometry,weather,misc,clock]{ifsym}
+\usepackage{natbib}
+\usepackage{hyperref}
 \usepackage{pifont}
 \usepackage{eurosym}
 \usepackage{amsmath}
@@ -17,7 +19,8 @@
 \usepackage{hyperref}
 \hypersetup{pdftex, colorlinks=true, linkcolor=blue, citecolor=blue,
             filecolor=blue, urlcolor=blue, pdftitle=}
-\usepackage[pdftex]{graphicx}
+\usepackage{graphicx}
+\usepackage{pdfpages}
 
 % Page layout (geometry)
 \setlength\voffset{-1in}
@@ -169,7 +172,7 @@ SECRETARIA DA PÓS-GRADUAÇÃO no dia:}
 
 \begin{flushleft}
 
-\noindent (1) TOTAL DE CRÉDITOS CURSADOS EM DISCIPLINAS: \rule{2cm}{0.4pt}
+\noindent (1) TOTAL DE CRÉDITOS CURSADOS EM DISCIPLINAS: 12
 
 \bigskip
 
@@ -178,16 +181,12 @@ E OS CONCEITOS OBTIDOS
 
 \bigskip
 
-Física da Terra - A\\
-Introdução à geofísica de exploração - A\\
-Instrumentação geofísica - A\\
-Problemas inversos em geofísica - A\\
-Métodos Matemáticos - B\\
-Métodos computacionais aplicados à geofísica - A\\
-Problemas não lineares - Métodos por gradiente - A\\
-Problemas não lineares - Métodos por heurísticos - A\\
-Estado térmico da Terra - A\\
-Tópicos de interpretação de dados gravimétricos e magnéticos - A
+Tópicos de interpretação de dados gravimétricos e magnéticos - A\\
+Minicurso: ``Electromagnetic methods in applied geophysics'' - (curso sem
+conceito)\\
+Fenômenos críticos em geociências - A\\
+Inversão em métodos potenciais - A\\
+Sísmica aplicada (ênfase em exploração de petróleo e gás) - A
 
 \bigskip
 
@@ -224,14 +223,16 @@ SE REFERE O RELATÓRIO, COM O TÍTULO E AUTORES DOS TRABALHOS APRESENTADOS
 Evento: Python in Science Conference 2014\\
 Autores: Uieda, L., V. C. Oliveira Jr and V. C. F. Barbosa\\
 Título: Using Fatiando a Terra to solve inverse problems in geophysics\\
-Material disponível em https://github.com/leouieda/scipy2014
+Material disponível em
+\href{https://github.com/leouieda/scipy2014}{https://github.com/leouieda/scipy2014}
 
 \bigskip
 
 Evento: EGU General Assembly 2014\\
 Autores: Uieda, L. and V. C. F. Barbosa\\
 Título: Gravity inversion in spherical coordinates using tesseroids\\
-Material disponível em https://github.com/leouieda/egu2014
+Material disponível em
+\href{https://github.com/leouieda/egu2014}{https://github.com/leouieda/egu2014}
 
 \bigskip
 
@@ -273,7 +274,7 @@ TRABALHOS DE CAMPO, ESCOLAS ETC)
 Ministrei o curso "Tópicos de inversão em geofísica" com duração de dois dias
 na III Semana de Geofísica da UNB.
 O material didático e informações sobre o curso estão disponíveis em
-https://github.com/pinga-lab/inversao-unb-2014
+\href{https://github.com/pinga-lab/inversao-unb-2014}{https://github.com/pinga-lab/inversao-unb-2014}
 
 
 \bigskip
@@ -296,6 +297,9 @@ como apresentado à Comissão de Pós-Graduação em Geofísica do Observatório
 Nacional na época da inscrição.
 }
 
+\includepdf[pages={-},offset=2.5cm -2.5cm]{projeto.pdf}
+
+
 \newpage
 
 %-----------------------------------------------------------------------------
@@ -315,7 +319,8 @@ implementação da inversão de dados gravimétricos em coordenadas esférias.
 A primeira etapa foi o desenvolvimento de um conjunto
 de classes e funções em linguagem Python para
 automatizar a criação de métodos de inversão.
-Esse código foi incluído na biblioteca Fatiando a Terra (http://fatiando.org/),
+Esse código foi incluído na biblioteca Fatiando a Terra (
+\href{http://fatiando.org/}{http://fatiando.org/}),
 onde é utilizado para implementar os diversos métodos de inversão já incluídos
 na biblioteca.
 Esse novo módulo de inversão automatiza as tarefas de
@@ -329,7 +334,7 @@ A segunda etapa foi a implementação da modelagem direta em coordenadas
 esféricas utilizando tesseroides (prismas esféricos).
 Fiz uma implementação da modelagem em linguagem Python para comparar com a
 implementação anterior em linguagem C do programa Tesseroids
-(http://www.leouieda.com/tesseroids).
+(\href{http://tesseroids.leouieda.com}{http://tesseroids.leouieda.com}).
 Obtive resultados preliminares da análise do erro cometido na integração
 numérica do campo gravitacional de um tesseroide.
 Existem poucos modelos em coordenadas esféricas com soluções analíticas que
@@ -355,22 +360,32 @@ PERÍODO DO RELATÓRIO}
 
 \vspace{1cm}
 
-\textit{
-Esta parte do relatório deve conter \textbf{obrigatoriamente}
-os seguintes itens:
-}
-
-\vspace{1cm}
-
 {\centering\bfseries\itshape
 Metodologia aplicada ou desenvolvida
+e
+Resultados parciais já obtidos
 \par}
 
 \bigskip
 
-{\centering\bfseries\itshape
-Resultados parciais já obtidos
-\par}
+Abaixo estão a introdução, metodologia e resultados do artigo sobre a
+modelagem direta utilizando tesseroides.
+Este trabalho descreve a metodologia para realizar a modelagem e sua
+implementação computacional.
+A metodologia sofreu diversas modificações durante a escrita do artigo
+no ano de 2014.
+
+Também realizei uma implementação inicial da inversão de dados gravimétricos
+para determinar o relevo de uma interface.
+A parametrização da interface é feita com tesseroides, possibilitando a
+inversão em coordenadas esféricas de grandes áreas.
+A inversão é feita com uma adaptação do método de \citet{Silva2014}.
+A implementação foi feita utilizando o módulo de inversão do software
+Fatiando a Terra (descrito no relatório de 2014).
+Essa infraestrutura computacional permite a implementação de uma inversão
+relativamente complexa em poucas (\~30) linhas de código.
+A implementação desta inversão ainda necessita ser testada extensivamente
+para verificar sua eficácia.
 
 \bigskip
 
@@ -380,50 +395,35 @@ Dificuldades encontradas e como elas estão sendo superadas
 
 \bigskip
 
+A metodologia para modelagem direta sofreu diversas alterações.
+O algoritmo de discretização adaptativa dos tesseroides foi convertido de um
+algoritmo recursivo para um algoritmo utilizando uma estrutura de dados
+denominada ``pilha'' (mais detalhes em ``Implementation'' abaixo).
+Essa mudança aumenta a velocidade do algoritmo pois evita o tempo gasto com
+chamadas a funções.
+
+A análise do erro da integração numérica passou a utilizar como referência uma
+casca esférica no lugar da meia casca esférica que foi utilizada anteriormente.
+Fizemos essa modificação pois a meia casca  esférica possui solução
+analítica em um único ponto, no polo.
+A figura~\ref{fig:glqerrorsample} mostra que o  maior erro na integração
+numérica está em uma área acima  do tesseroide.
+Logo, o cálculo em um único ponto  pode não  registrar o maior erro da
+integração, subestimando o tamanho do erro
+(mais detalhes em ``Evaluation of the accuracy'' abaixo).
+
+\bigskip
+\bigskip
+
 {\centering\bfseries\itshape
-Bibliografia utilizada no contexto do trabalho.
+Partes do artigo sobre modelagem direta com tesseroides
 \par}
 
-\bigskip
 
-\bigskip
+\input{parte-paper.tex}
 
-{\itshape
-Recomenda-se que o estudante escreva, nesta parte do relatório, textos que
-poderão ser aproveitados em suas teses ou dissertações.}
-
-\bigskip
-
-{\itshape
-Por exemplo, aqueles alunos que realizaram trabalhos de campo ou de laboratório
-no último ano e estes trabalhos fazem parte de seu projeto de pesquisa; então,
-estes alunos podem aproveitar para escrever sobre estes trabalhos executados.}
-
-\bigskip
-
-{\itshape
-Outro exemplo, aqueles alunos que estão desenvolvendo metodologias ou
-aplicações de metodologias existente; então, estes alunos podem aproveitar
-para escrever sobre estas metodologias.}
-
-\bigskip
-
-{\itshape
-Outro exemplo, aqueles alunos mais adiantados que já escreveram nos relatórios
-anteriores os itens acima; então, estes alunos podem aproveitar para escrever
-sobre seus resultados apresentando figuras que serão aproveitadas na Tese ou
-Dissertação.}
-
-\bigskip
-
-{\itshape
-Alguns alunos também podem escrever o texto da introdução do seu trabalho. Em
-geral, uma introdução deve: 1) apresentar a natureza e o alcance do problema;
-2) revisar a literatura;, 3) apresentar os objetivos do trabalho; 4) descrever
-o método de investigação; e 5) descrever os principais resultados da
-investigação.}
-
-
+\bibliographystyle{seg}
+\bibliography{references.bib}
 
 \newpage
 
@@ -461,12 +461,13 @@ Nenhuma.
 \textbf{Cronograma detalhado das atividades:}
 
 \begin{center}
-\begin{tabular}{ll}
+\begin{tabular}{l|l}
     \toprule
     \textbf{Atividade} & \textbf{Período de execução} \\
     \midrule
-    Escrita do artigo de modelagem direta & Fev-Março\\
-    Aplicação da inversão de interfaces & Março-Maio\\
+    Finalização do artigo de modelagem direta & Março\\
+    Finalização da implementação da inversão de interfaces & Março\\
+    Aplicação da inversão de interfaces & Abril-Maio\\
     Escrita do artigo de inversão de interfaces & Abril-Agosto\\
     Finalização da tese & Agosto-Setembro\\
     Defesa & Outubro\\
