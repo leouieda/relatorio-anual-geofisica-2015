@@ -1,4 +1,48 @@
+
+\begin{center}
+    \textbf{
+    Tesseroids: forward modeling gravitational fields in spherical coordinates
+    }
+    \\
+    by
+    Leonardo Uieda,
+    Val\'eria C. F. Barbosa,
+    and
+    Carla Braitenberg
+\end{center}
+
+
+\section*{Abstract}
+We present the open-source software \emph{Tesseroids},
+a set of command-line programs to perform the forward modeling
+of gravitational fields in spherical coordinates.
+The fields are calculated numerically using
+the Gauss-Legendre Quadrature (GLQ).
+We have improved upon an adaptive discretization algorithm
+to guarantee the accuracy of the GLQ integration.
+Our implementation of adaptive discretization
+uses a  ``stack'' based algorithm
+instead of recursion to achieve higher performance
+and more control over execution errors and corner cases.
+The algorithm is controlled by
+a scalar called the distance-size ratio ($D$)
+that determines the accuracy of the integration as well as
+the computation time.
+We determined optimal values of $D$
+for the gravitational potential, gravitational acceleration,
+and gravity gradient tensor
+by comparing the computed tesseroids effects
+with those of a homogeneous spherical shell.
+Contrary to previous assumptions,
+our results show that the potential and its first and second derivatives
+require different values of $D$ to achieve a target accuracy of 0.1\%.
+These values were incorporated as defaults in the software.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
+
 
 Satellite missions dedicated to measuring the Earths gravity field
 (like CHAMP, GRACE, and GOCE)
@@ -22,12 +66,14 @@ This is attributed to tesseroids degenerating into an approximately triangular
 shape at the poles.
 The Gauss-Legendre Quadrature (GLQ) integration consists of approximating
 the volume integral by a weighted sum of the effect of point masses.
-An advantage of the GLQ approach is that the accuracy of integration can be
+An advantage of the GLQ approach is that it can be
 controlled by the number of point masses used.
+The larger the number of point masses,
+the better the accuracy of GLQ integration.
 A disadvantage is the increased computation time as the number of
 point masses increases.
-Thus, there is a trade-off between accuracy and computation time, a common
-theme in numerical methods.
+Thus, there is a trade-off between accuracy and computation time.
+This is a common theme in numerical methods.
 \citet{Wild-Pfeiffer2008} investigated the use of different mass elements,
 including tesseroids, to compute the gravitational effects of topographic
 masses.
@@ -37,22 +83,23 @@ However, the question of how to determine the optimal parameters for GLQ
 integration remained open.
 
 
-Previous work by \citet{Ku1977} investigated the use of the Gauss-Legendre
-Quadrature in gravity forward modeling.
+Previous work by \citet{Ku1977} investigated the use of the GLQ
+in gravity forward modeling.
 \citet{Ku1977} numerically integrated the vertical component of the
 gravitational acceleration of right rectangular prisms.
 The author suggested that the accuracy of the GLQ integration depends on
 the ratio between distance to the computation point and the distance between
 adjacent point masses.
 Based on this, \citet{Ku1977} proposed an empirical criteria that the distance
-between adjacent point masses should be less than the distance to the computation point.
-\citet{Asgharzadeh2007} proposed using this criteria for the GLQ integration of
+between adjacent point masses should be less than
+the distance to the computation point.
+\citet{Asgharzadeh2007} used  this criteria for the GLQ integration of
 the gravity gradient tensor of tesseroids.
-To our knowledge, there has been no investigation if the empirical criteria of
-\citet{Ku1977} is valid for gravity gradient components or for tesseroids.
+To our knowledge, an analysis of how well this ad hoc criteria of
+\citet{Ku1977} works for gravity gradient components or for tesseroids
+has never been done before.
 There has also been no attempt to quantify the error committed in the GLQ
 integration when applying the criteria of \citet{Ku1977}.
-
 
 \citet{Li2011} devised an algorithm to automatically enforce the criteria of
 \citet{Ku1977}.
@@ -60,43 +107,42 @@ Their algorithm divides the tesseroid into smaller ones instead of increasing
 the number of point masses per tesseroid.
 This division effectively increases the total number of point masses
 because the number of points masses per tesseroid is fixed.
-The criterion used decide if a division is necessary is
-that the minimum distance to the computation point must be larger than
-the largest dimension of the tesseroid.
-This division is repeated recursively until all tesseroids obey the criteria.
+A tesseroid is divided if the minimum distance to the computation point
+is smaller than the largest dimension of the tesseroid.
+This division is repeated recursively until all tesseroids obey the criterion.
 Then, GLQ integration is performed for each of the smaller tesseroids
 using the specified number of point masses.
 The advantage of this adaptive discretization over
 increasing the number of points masses is that the
-total total distribution of point masses will be greater
+total distribution of point masses will be greater
 only close to the computation point.
 This makes the adaptive discretization more computationally efficient.
 
 
 \citet{Grombein2013} developed optimized formula for the gravitational fields
 of tesseroids using Cartesian integral kernels.
-These formula are faster to compute and don't have singularities at the poles
+These formulas are faster to compute and do not have singularities at the poles
 like their spherical counterparts.
 The Cartesian formula are numerically integrated using a Taylor series
 expansion as per \citet{Heck2007}.
 \citet{Grombein2013} use a near-zone separation to mitigate the increased error
 at high latitudes.
-In the so called ``near-zone'' of the computation point they use a finner
-discretization with smaller tesseroids.
+In the so called ``near-zone'' of the computation point they use a finer
+discretization composed by smaller tesseroids.
 This is accomplished by dividing the tesseroids along their horizontal
 dimensions.
 However, the determination of an optimal size of the near-zone remains an
 open question \citep{Grombein2013}.
 
-
 We have implemented a modified version of the adaptive discretion of
-\citet{Li2011} into the open-source software package \textit{Tesseroids}.
+\citet{Li2011} into the open-source software package \emph{Tesseroids}.
 The software uses the Cartesian formula of \citet{Grombein2013} for improved
 performance and robustness.
-Previous versions of \textit{Tesseroids} have been used by, e.g.,
+Previous versions of the software have been used by, e.g.,
 \citet{Alvarez2012, Bouman2013, Bouman2013a, Mariani2013, Braitenberg2014,
 Braitenberg2011, Fullea2014}.
-This article describes the software \textit{Tesseroids} and the implementation
+
+This article describes the software design and the implementation
 of our modified adaptive discretization algorithm.
 We also present a numerical investigation of the error committed
 in the computations.
@@ -132,7 +178,7 @@ The gravitational fields of a tesseroid at a point $P = (r,\phi,\lambda)$
 are determined with respect to the local North-oriented coordinate system at
 P (x, y, z in Figure~\ref{fig:tesseroid}).
 \citet{Grombein2013} formulated Cartesian kernels for the volume integrals
-that define the tesseroid gravitational potential, gravitational attraction,
+that define the tesseroid gravitational potential, gravitational acceleration,
 and Marussi tensor, respectively,
 
 \begin{equation}
@@ -253,6 +299,7 @@ becomes \citep{Asgharzadeh2007}
     \sum\limits_{i=1}^{N^r}
     \sum\limits_{j=1}^{N^\phi}
     \sum\limits_{k=1}^{N^\lambda}
+    W_i^r W_j^\phi W_k^\lambda
     f(r_i, \phi_j, \lambda_k),
     \label{eq:glq3d}
 \end{equation}
@@ -291,7 +338,7 @@ Figure~\ref{fig:glqerrorsample}b shows $g_{xy}$ computed with order two
 GLQ as well but at 150 km height.
 Notice that the computed effect is concentrated around each point mass
 of the GLQ (black dots) and does not resemble the effect of a tesseroid.
-\citet{Ku1977} determined an empirical criterion that the distance between
+\citet{Ku1977} determined an ad hoc criterion that the distance between
 point masses (quadrature nodes) should be smaller than the minimum distance to
 the computation point.
 Thus, if a computation point is too close to the tesseroid one would have to
@@ -317,10 +364,12 @@ the expect results for a single tesseroid \citep{Asgharzadeh2007}.
         ($2 \times 2 \times 2 = 8$ point masses).
         b) At $150\ km$ height and GLQ order 2,
         the result resembles that of
-        four point mases instead of a single tesseroid.
+        four point masses instead of a single tesseroid.
         This effect was shown by \citet{Ku1977}.
-        c) At $150\ km$ but with a higher GLQ order of 30,
-        the result is similar to that expected for a single mass source.
+        c) At $150\ km$ but with a higher GLQ order of 30.
+        In (c) the horizontal locations of the point masses were not shown.
+        Notice that the results shown in (c) are similar to that expected
+        for a single mass source.
     }
     \label{fig:glqerrorsample}
 \end{figure}
@@ -329,36 +378,35 @@ the expect results for a single tesseroid \citep{Asgharzadeh2007}.
 \subsection{Adaptive discretization}
 
 \citet{Li2011} proposed an alternative method
-for decreasing the distance between point masses
-and achieve an accurate integration.
+for decreasing the distance between point masses on the quadrature nodes
+aiming at achieving an accurate integration.
 Instead of increasing the GLQ order,
 they keep it fixed to a given number
-and divide the tesseroid into smaller parts.
+and divide the tesseroid into smaller volumes.
 The sum of the effects of the smaller tesseroids
 is equal to the gravitational effect of the larger tesseroid.
 This division effectively decreases
 the distance between nodes because
 of the smaller size of the tesseroids.
-The criterion for dividing a tesseroid or not
-is that the distance to the computation point
-must be smaller than a constant times the size of the tesseroid.
-This is analogous to the criterion of \citet{Ku1977}
+The criterion for dividing a tesseroid is that the distance to the computation point
+should be smaller than a constant times the size of the tesseroid.
+This is analogous to the criterion proposed by \citet{Ku1977}
 because the size of the tesseroid serves as a proxy
 for the distance between point masses.
 This procedure is repeated recursively
-(i.e., to each of the smaller tesseroids and so on)
 until all tesseroids are within the acceptable
 ratio of distance and size or a minimum size is achieved.
 
 
 The advantage of this adaptive discretization is
 that the number of point masses is only increased
-in regions of the tesseroid that are
+in parts of the tesseroid that are
 closer to the computation point.
-Alternatively,
+Notice that the alternative approach of
 simply increasing the order of the GLQ
 would increase the number of point masses
 evenly throughout the whole tesseroid.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Implementation}
@@ -366,24 +414,22 @@ evenly throughout the whole tesseroid.
 We have implemented the calculation of
 the tesseroid gravitational fields
 with adaptive discretization
-in the open-source package \textit{Tesseroids}.
-It is freely available
-online through the software website\footnote{
-\href{http://tesseroids.leouieda.com}{http://tesseroids.leouieda.com}}
+in version 1.2 of the open-source package \emph{Tesseroids}.
+It is freely available online\footnote{
+\url{http://tesseroids.leouieda.com}}\footnote{
+\url{http://dx.doi.org/10.5281/zenodo.16033}}
 under the BSD 3-clause open-source license.
 An archived version of the source code
-is available as part of this article
-and online.
+is also available as part of this article.
 
-\textit{Tesseroids}  consists of command-line programs
+\emph{Tesseroids} consists of command-line programs
 written in the C programming language.
 The package includes programs to calculate
 the gravitational fields of tesseroids and
-rectangular prisms (in both Cartesian and spherical coordinates),
-as well as model and computation grid generation.
+rectangular prisms (in both Cartesian and spherical coordinates).
 All programs receive input through
-command-line arguments and the standard input channel (STDIN)
-and output the results through the standard output channel (STDOUT).
+command-line arguments and the standard input channel (``STDIN'')
+and output the results through the standard output channel (``STDOUT'').
 For example,
 the command to generate a regular grid with $NLON \times NLAT$ points,
 calculate on it $g_z$ and $g_{zz}$ caused by
@@ -397,10 +443,10 @@ tessgrd -rW/E/S/N -bNLON/NLAT -zHEIGHT | \
     tessgzz MODELFILE > OUTPUT
 \end{verbatim}
 
-The \texttt{src} folder of the source code archive
+The \emph{src} folder of the source code archive
 contains the C files that build the command-line programs
-(e.g., \texttt{tessgz.c}).
-The \texttt{src/lib} folder contains
+(e.g., \emph{tessgz.c}).
+The \emph{src/lib} folder contains
 the source files that implement the numerical computations.
 We will not describe here the implementation of the input/output parsing and
 other miscellanea.
@@ -412,7 +458,7 @@ and the adaptive discretization of tesseroids.
 
 \subsection{Numerical integration}
 
-The source file \texttt{src/lib/glq.c}
+The source file \emph{src/lib/glq.c}
 contains the code necessary to perform
 a Gauss-Legendre Quadrature integration.
 The first step in the GLQ is to compute the
@@ -427,27 +473,27 @@ The additional computational load is minimal
 because the root-finder algorithm
 must be run only once per program execution.
 The root-finder is implemented in functions
-\texttt{glq\_nodes} and \texttt{glq\_next\_root}.
+\emph{glq\_nodes} and \emph{glq\_next\_root}.
 The computed roots will be in the range $[-1, 1]$
 and must be scaled to the integration limits
 (the physical boundaries of the tesseroid)
-using function \texttt{glq\_set\_limits} (see equation~\ref{eq:glq_scaling}).
+using function \emph{glq\_set\_limits} (see equation~\ref{eq:glq_scaling}).
 
 The GLQ weights (equation~\ref{eq:glq_weights})
-are computed by function \texttt{glq\_weights}.
+are computed by function \emph{glq\_weights}.
 Both the computed roots and weights are stored in a data structure
-(a C \texttt{struct}) called \texttt{GLQ}.
-Function \texttt{glq\_new}
+(a C \emph{struct}) called \emph{GLQ}.
+Function \emph{glq\_new}
 handles memory allocation,
 calculates the roots and weights,
-and returns the complete \texttt{GLQ} structure.
+and returns the complete \emph{GLQ} structure.
 
 The numerical integration of the tesseroid gravitational fields
-is performed by the functions in module \texttt{src/lib/grav\_tess.c}.
-Functions \texttt{tess\_pot}, \texttt{tess\_gx}, \texttt{tess\_gy}, and so on,
+is performed by the functions in module \emph{src/lib/grav\_tess.c}.
+Functions \emph{tess\_pot}, \emph{tess\_gx}, \emph{tess\_gy}, and so on,
 compute the gravitational fields of a single tesseroid
 on a single computation point.
-These functions require three \texttt{GLQ} structures,
+These functions require three \emph{GLQ} structures,
 each containing the roots and weights
 for GLQ integration in the three dimensions.
 The roots must be scaled to the
@@ -471,7 +517,7 @@ to the outer loops.
 \subsection{Implementation of adaptive discretization}
 
 Our implementation of the adaptive discretization algorithm
-differs in a few ways from the original.
+differs in a few ways from one proposed by \citet{Li2011}.
 In \citet{Li2011},
 a tesseroid will be divided when
 the smallest distance between it and the computation point
@@ -523,7 +569,7 @@ To determine if a tesseroid must be divided,
 we check if
 
 \begin{equation}
-    \frac{d}{L_i} < D,
+    \frac{d}{L_i} \geq D,
     \label{eq:condition}
 \end{equation}
 
@@ -561,9 +607,6 @@ The number of tesseroids in the resulting discretization is, respectively,
         for a computation point P
         using the distance-size ratio $D$ equal to
         (b) 1, (c) 2, and (d) 6.
-        $d$ is the Cartesian distance between
-        the center of the top face of the tesseroid
-        and $P$.
         $L_r$, $L_\phi$, and $L_\lambda$ are the dimensions of the tesseroid.
         Note that increasing $D$
         results in a fine division of the tesseroid
@@ -589,40 +632,41 @@ Stacks are also known as ``Last-in-first-out'', or LIFO, data structures.
 We will describe the stack-based algorithm
 for computing the effect of a single tesseroid
 on a single computation point.
-The algorithm is implemented in function \texttt{calc\_tess\_model\_adapt}
-of the file \texttt{src/lib/grav\_tess.c}.
+The algorithm is implemented in function \emph{calc\_tess\_model\_adapt}
+of the file \emph{src/lib/grav\_tess.c}.
 The stack of tesseroids is represented by
-the \texttt{stack} variable,
-an array of \texttt{TESSEROID} structures.
+the \emph{stack} variable,
+an array of \emph{TESSEROID} structures.
 We must define a maximum size for the stack to allocate memory for it.
 Defining a maximum size allows us to
 avoid an infinite loop
 in case the computation point is on
 (or sufficiently close to) the surface of the tesseroid.
-We use the integer \texttt{stktop}
+We use the integer \emph{stktop}
 to keep track of the index of
 the last element in the stack (the top of the stack).
 
 The algorithm starts by creating an empty stack of tesseroids.
 Then, the stack is initialized with the input tesseroid.
 The initialization is done by copying the tesseroid into the stack
-and setting \texttt{stktop} to zero (the first element).
+and setting \emph{stktop} to zero (the first element).
 Once the stack is initialized, the steps of the algorithm are:
 
 \begin{enumerate}
     \item ``Pop'' the stack (i.e., take the last tesseroid from it).
-        This will cause \texttt{stktop} to be reduced by one.
+        This will cause \emph{stktop} to be reduced by one.
         This tesseroid is the one that will be evaluated in the following
         steps.
-    \item Compute the distance $d$ between
+    \item Compute the distance $d$ (equation~\ref{eq:distance}) between
         the geometric center of the tesseroid and
-        the computation point using equation~\ref{eq:distance}.
+        the computation point.
     \item Compute the dimensions of the tesseroid $L_\lambda$, $L_\phi$,
         and $L_r$ using equations~\ref{eq:sizelon}-\ref{eq:sizer}.
     \item Check the condition in equation~\ref{eq:condition} for each
         dimension of the tesseroid.
-    \item If none of the dimensions fail the above condition,
-        compute the gravitational effect of the tesseroid using the
+    \item If all dimensions hold the inequality \ref{eq:condition},
+        the tesseroid is not divided and its
+        gravitational effect is computed using the
         Gauss-Legendre Quadrature
         (equations~\ref{eq:tesspot}-\ref{eq:tesstensor} and~\ref{eq:glq3d}).
         We use a GLQ order of two for all three dimensions
@@ -634,16 +678,19 @@ Once the stack is initialized, the steps of the algorithm are:
     \begin{enumerate}
         \item Divide the tesseroid in half along each dimension that failed
              the condition.
-        \item Check if the number of new elements plus \texttt{stktop}
-             is smaller than the maximum stack size.
-             If it is not (i.e., the stack is full),
+        \item Check if there is room in the stack
+            for the new tesseroids
+            (i.e.,the number of new elements plus \emph{stktop}
+             is smaller than the maximum stack size).
+             If there isn't,
              warn the user of a ``stack overflow''
              and compute the effect of the larger tesseroid (step 5).
-        \item If the stack is not full, place the smaller tesseroids into
+             If there is room in the stack,
+             place the smaller tesseroids into
              the stack.
     \end{enumerate}
     \item Repeat the above steps until the stack is empty
-        (\texttt{stktop} is equal to -1).
+        (\emph{stktop} is equal to -1).
 \end{enumerate}
 
 This stack-based implementation
@@ -666,34 +713,41 @@ Overflowing of the stack can be handled gracefully
 with an error message
 or even performing a suitable approximation of the result.
 
-\subsection{Reproducing the analysis and results}
+\subsection{Code for figures and error analysis}
 
 
-All figures and numerical experiments in this article
-were produced in IPython notebooks\footnote{
-\href{http://ipython.org}{http://ipython.org}}
+The error analysis and all figures in this article
+were produced in IPython notebooks
 \citep{Perez2007}.
-These files combine the analysis and figure generation source code
-with text, equations, and the figures generated by the code.
-We used the libraries
-\textit{pandas} by \citet{Mckinney2010}
-to perform the data analysis,
-\textit{matplotlib} by \citet{Hunter2007} for graphs,
-and \textit{Mayavi} by \citet{Ramachandran2011} for 3D graphs.
+The notebook files combine source code in various programming languages,
+program execution,
+text, equations,
+and the figures generated by the code
+into a single document.
+We used the following Python language libraries
+to perform the error analysis and generate figures:
+\emph{pandas} by \citet{Mckinney2010},
+\emph{matplotlib} by \citet{Hunter2007} for 2D figures and maps,
+and \emph{Mayavi} by \citet{Ramachandran2011} for 3D figures.
 
-The notebook files,
-as well as instructions for installing and running the analysis,
-are distributed along with the source code archive
-that accompanies this article.
+The IPython notebooks
+and the data generated for the error analysis,
+as well as instructions for installing the software
+and running the programs,
+are also included in
+the source code archive that accompanies this article.
 Alternatively,
-all accompanying material can be downloaded
-from an online source code repository\footnote{
-\href{https://github.com/pinga-lab/paper-tesseroids}{https://github.com/pinga-lab/paper-tesseroids}}
-or a persistent archive.
+all accompanying material is available
+in online repositories\footnote{
+\url{https://github.com/pinga-lab/paper-tesseroids}}\footnote{
+\url{http://dx.doi.org/10.5281/zenodo.16032}}.
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Evaluation of the accuracy}
+
+
 
 The key controlling point of the adaptive discretization algorithm
 is the distance-size ratio $D$ (equation~\ref{eq:condition}).
@@ -707,7 +761,6 @@ We perform the analysis for the gravitational potential,
 acceleration, and gradient tensor components
 to evaluate if the same value of $D$ yields compatible error levels
 for different fields.
-
 
 The reference against which we compare the computed tesseroid fields
 is a homogeneous spherical shell.
@@ -727,72 +780,26 @@ on top of the tesseroid.
 Thus, calculating the tesseroid fields at a single point might not
 capture the point of largest error.
 Instead, we calculate the effect of the tesseroid model on a regular grid
-of $10 \times 10$ points.
+of $10 \times 10$ points at different geographic locations
+(see Table~\ref{tbl:experiment}).
 Fortunately, the symmetry of the shell allows us to consider the computation
 point at any geocentric coordinate.
 Therefore, the effect of the shell will be same along the entire grid.
 We compute the differences between the effects of the shell and the tesseroid
-model on the grid and consider only the largest error.
-By placing the grid on top of a particular tesseroid, we increase the chances
-of capturing the true largest integration error.
+model on the grid.
+However, we will consider only the largest error in our analysis.
 
 
+We placed the grid on top of a particular tesseroid
+to increase the chances of capturing the true largest integration error.
 We calculate the errors for values of the distance-size ratio
 $D$ varying from 0 (i.e., no divisions) to 10 in 0.5 intervals.
-Furthermore, we repeated the analysis in four different numerical experiments,
+Furthermore, we repeated the error analysis in four different numerical experiments,
 each with computation grids at different locations and
 different tesseroid model sizes.
 Table~\ref{tbl:experiment} describes the different numerical
 experiments and the corresponding parameters of the computation grid and
 tesseroid model.
-
-
-\begin{table*}
-\centering
-\begin{tabular}{cccc}
-    \hline
-    ~             & Grid location & Grid height & Tesseroid size \\
-    \hline
-    Experiment 1  & 89N--90N/0E--1E & 2 km & $1^\circ \times 1^\circ$ \\
-    Experiment 2  & 0N--1N/0E--1E & 2 km & $1^\circ \times 1^\circ$ \\
-    Experiment 3  & 89N--90N/0E--1E & 260 km & $1^\circ \times 1^\circ$ \\
-    Experiment 4  & 60N--90N/0E--30E & 2 km & $30^\circ \times 30^\circ$ \\
-    \hline
-\end{tabular}
-\caption{Parameters of the numerical experiments.}
-\label{tbl:experiment}
-\end{table*}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=0.4\textwidth]{figs/distance-size-curves}
-    %\missingfigure{}
-    \caption{
-        The maximum difference between the computed tesseroid and shell effects
-        as a function of the distance-size ratio $D$
-        for (a) the gravitational potential, (b) $g_z$, and (c) $g_{zz}$.
-        The difference is given as a percentage of the shell effect.
-        Curves correspond to the different tesseroid models and computation
-        grids shown in Table~\ref{tbl:experiment}.
-        The horizontal solid black line marks the established error threshold
-        of $0.1\%$.
-    }
-    \label{fig:dist-size-curves}
-\end{figure}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=0.4\textwidth]{figs/gzz-with-height}
-    %\missingfigure{}
-    \caption{
-        Difference between the computed $g_{zz}$ for the spherical shell and
-        the tesseroid model at different heights. Curves show the maximum
-        difference as a percentage of the shell value.
-        The horizontal solid black line marks the established error threshold
-        of $0.1\%$.
-    }
-    \label{fig:gzz-with-height}
-\end{figure}
 
 
 Figure~\ref{fig:dist-size-curves} shows
@@ -813,7 +820,7 @@ for all experiments are below the $0.1\%$ error threshold.
 For $g_z$, the same is achieved with $D=1.5$.
 Conversely, $g_{zz}$ requires a value of $D=8$ to achieve an error level of
 $0.1\%$.
-For a computation height of 260 km, the error curve for $G_{zz}$
+For a computation height of 260 km, the error curve for $g_{zz}$
 intercepts the error threshold line at $D=2.5$.
 This behavior suggests that the error curves for $g_{zz}$ might depend on the
 computation height.
@@ -821,7 +828,7 @@ To test this hypothesis, we computed the error curves for $g_{zz}$ at
 heights 2, 10, 50, 150, and 260 km.
 Figure~\ref{fig:gzz-with-height} shows the results for $g_{zz}$ at varying
 computation heights.
-Notice that the distance-size ratio needed to achieve $0.1\%$ accuracy
+Notice that the distance-size ratio required to achieve $0.1\%$ accuracy
 decreases as the computation height increases.
 For example, computation at 260 km height requires $D=2.5$ whereas at 10 km
 height a value of $D=5.5$ is required to achieve the same accuracy.
@@ -831,9 +838,174 @@ saving computation time.
 
 
 We have implemented the values of the distance-size ratio producing $0.1\%$
-accuracy determined above as defaults for the software \textit{Tesseroids}.
+accuracy determined above as defaults for the software \emph{Tesseroids}.
 We chose the conservative value of $D=8$ for the gravity gradient components
 as a fail-safe alternative.
 Users can control the value of $D$ used in the computations through
 command-line arguments to achieve greater performance at the cost of
 accuracy.
+
+
+\begin{table*}
+\centering
+\begin{tabular}{lccc}
+    \hline
+    ~             & Grid location & Grid height & Tesseroid size \\
+    \hline
+    Experiment 1 (pole)            & 89N--90N/0E--1E  & 2 km   & $1^\circ \times 1^\circ$ \\
+    Experiment 2 (equator)         & 0N--1N/0E--1E    & 2 km   & $1^\circ \times 1^\circ$ \\
+    Experiment 3 (260 km)          & 89N--90N/0E--1E  & 260 km & $1^\circ \times 1^\circ$ \\
+    Experiment 4 ($30^\circ$ size) & 60N--90N/0E--30E & 2 km   & $30^\circ \times 30^\circ$ \\
+    \hline
+\end{tabular}
+\caption{
+    Parameters of the numerical experiments to quantify the accuracy of
+    the numerical integration.
+    All grids had $10\times10$ regularly spaced computation points at a
+    constant height.
+    Tesseroids used to discretize the spherical shell had 1 km thickness and
+    the horizontal dimensions shown in the table.
+}
+\label{tbl:experiment}
+\end{table*}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.4\textwidth]{figs/distance-size-curves}
+    \caption{
+        The maximum difference between the computed tesseroid and shell effects
+        as a function of the distance-size ratio $D$
+        for (a) the gravitational potential, (b) $g_z$, and (c) $g_{zz}$.
+        The difference is given as a percentage of the shell effect.
+        Curves correspond to the different tesseroid models and computation
+        grids shown in Table~\ref{tbl:experiment}.
+        The horizontal solid black line marks the established error threshold
+        of $0.1\%$.
+        A value of $D=0$ means that no divisions are made.
+    }
+    \label{fig:dist-size-curves}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.4\textwidth]{figs/gzz-with-height}
+    \caption{
+        Difference between the computed $g_{zz}$ for the spherical shell and
+        the tesseroid model at different heights. Curves show the maximum
+        difference as a percentage of the shell value.
+        The horizontal solid black line marks the established error threshold
+        of $0.1\%$.
+        A value of $D=0$ means that no divisions are made.
+    }
+    \label{fig:gzz-with-height}
+\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Conclusions}
+
+
+We have presented the open-source software \emph{Tesseroids}.
+It consists of command-line programs,
+written in the C programming language,
+to perform the forward modeling of gravitational fields in spherical
+coordinates.
+The fields are calculated from a mass model composed of spherical prisms, the
+so-called tesseroids.
+The volume integrals of the gravitational fields of a tesseroid are solved
+numerically using the Gauss-Legendre Quadrature (GLQ).
+The GLQ approximates the volume integrals by weighted sums of point mass
+effects.
+The error of the GLQ integration increases as the computation point gets closer
+to the tesseroid.
+To counter this effect,
+the accuracy of the GLQ integration can be increased by using more point
+masses or by dividing each tesseroid into smaller ones.
+
+
+We have implemented and improved upon an adaptive discretization algorithm to
+achieve an optimal division of tesseroids.
+Tesseroids are divided into more parts closer to the computation point,
+where more point masses are needed.
+Our implementation of the adaptive discretization uses a ``stack'' data
+structure in place of the originally proposed recursive implementation.
+The stack-based algorithm is computationally faster and allows more control
+over errors when too many divisions are necessary.
+The adaptive discretization is controlled by
+a scalar called the distance-size ratio ($D$).
+The algorithm ensures that all tesseroids will
+have dimensions smaller than $D$ times the distance to the computation point.
+The value of $D$ indirectly controls the accuracy of the integration as well as
+the computation time.
+
+
+We performed an error analysis to determine
+the optimal value of $D$ required to achieve a target accuracy.
+We used a spherical shell as a reference to calculate the computation error of
+our algorithm for different values of $D$.
+Our results show that the values of $D$ required to achieve a maximum error
+of 0.1\% of the shell values are
+1 for the gravitational potential, 1.5 for the gravitational acceleration,
+and 8 for the gravity gradients.
+Previous assumptions in the literature
+were that accurate results are guaranteed if
+the distance to the tesseroid is larger than
+the distance between point masses.
+This condition was previously applied indiscriminately
+to both the gravitational acceleration and the gravity gradients.
+That assumption is equivalent to using $D=1.5$ for all fields.
+Our results show that this is valid for the gravitational
+acceleration and results in a 0.1\% computation error.
+This is expected because the original study that determined the above condition
+was performed on the vertical component of gravitational acceleration.
+However, applying the same condition to the gravity gradients produces
+an error of the order of $10^2\%$.
+
+
+For the gravity gradients in particular,
+the distance-size ratio required for 0.1\% error decreases with height.
+This can be attributed to the higher sensitivity of gravity gradients
+to height variations because they decay with the distance cubed.
+This behavior causes the integration kernel to have more high frequency
+components, thus requiring more point masses for numerical integration.
+
+
+The values of the distance-size ratio determined above were
+incorporated as defaults in the software \emph{Tesseroids}.
+We chose the value $D=8$ for the gravity gradients as a conservative default.
+If the user desires, the value of $D$ used can be controlled by a command-line
+argument.
+
+
+In situations that require many tesseroid divisions,
+the stack used in the algorithm will overflow and further
+divisions become impossible.
+The current implementation warns the user that
+the overflow occurred and proceeds with the GLQ integration without division.
+Future improvements to the algorithm include a better way to handle such
+situations as they arise.
+An alternative would be to replace the tesseroid by an equivalent
+right rectangular prism and compute its effects instead.
+This would allow accurate computations at smaller distances.
+Furthermore,
+the computation time increases drastically as the computation point
+gets closer to the tesseroid.
+This effect can be prohibitive for computing the gravity gradients at
+relatively low heights (e.g., for terrain corrections of
+ground or airborne surveys).
+Further investigation of different criteria for dividing the tesseroids could
+yield better performance through a reduced number of divisions.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Acknowledgments}
+
+The authors were supported in this research by
+a fellowship (VCFB) from
+Conselho Nacional de Desenvolvimento Cient\'ifico e Tecnol\'ogico (CNPq)
+and a scholarship (LU) from
+Coordena\c{c}\~ao de Aperfei\c{c}oamento de Pessoal de N\'ivel Superior
+(CAPES),
+Brazil.
+Additional support for the authors was provided by
+the Brazilian agency FAPERJ (grant E-26/103.175/2011).
